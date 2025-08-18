@@ -94,7 +94,7 @@ func (rt *route) Handler(handler http.Handler) *route {
 
 // HandlerFunc sets the handler function for this route
 func (rt *route) HandlerFunc(handler http.HandlerFunc) *route {
-	rt.handler = Wrap(handler)
+	rt.handler = WrapHandler(handler)
 	return rt
 }
 
