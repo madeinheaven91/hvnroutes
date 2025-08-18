@@ -28,7 +28,7 @@ func LoggingMW(next http.HandlerFunc) http.HandlerFunc {
 		lrw := NewLoggingResponseWriter(w)
 
 		start := time.Now()
-		next(w, r)
+		next(lrw, r)
 		end := time.Now()
 
 		log.Printf("%s %s %s | %d sent %d | handled in %d ms",
