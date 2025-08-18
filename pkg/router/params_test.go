@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	tHandler http.Handler      = router.Wrap(handlerFunc)
+	tHandler http.Handler      = router.WrapHandler(handlerFunc)
 	fstMw    router.Middleware = router.WrapMW(middlewareFunc)
 	sndMw    router.Middleware = router.WrapMW(middlewareFunc2)
 )
