@@ -19,13 +19,12 @@ func NewRouter(mux *http.ServeMux) *Router {
 	}
 }
 
-// BuildMux assembles all routes, middlewares and handlers and return *http.ServeMux
+// BuildMux assembles all routes, middlewares and handlers and returns *http.ServeMux
 func (c *Router) BuildMux() *http.ServeMux {
 	c.Route.buildSubroutes(c.Mux, "")
 	return c.Mux
 }
 
-// route ... A tree of routes with middleware chains and handlers
 type route struct {
 	path            string
 	handler         http.Handler
@@ -35,9 +34,7 @@ type route struct {
 	stopProp        bool
 }
 
-// Route ...
-//
-// Create a new route. Leave `method` empty to allow all methods.
+// NewRoute сreates a new route. Leave `method` empty to allow all methods.
 // If `handler` is nil, then it will be set to defaultHandler.
 //
 // params:
@@ -45,7 +42,7 @@ type route struct {
 //   - method: string, default ""
 //   - middlewares []Middleware, default nil
 //   - stopProp bool, default false
-func Route(path string, params ...any) *route {
+func NewRoute(path string, params ...any) *route {
 	p := ParseParams(params...)
 	return &route{
 		path:            path,
@@ -57,7 +54,8 @@ func Route(path string, params ...any) *route {
 	}
 }
 
-func RouteWithParams(path string, params RouteParams) *route {
+// NewRouteWithParams сreates a new route with provided RouteParams struct. 
+func NewRouteWithParams(path string, params RouteParams) *route {
 	return &route{
 		path:            path,
 		handler:         params.Handler,
@@ -68,7 +66,6 @@ func RouteWithParams(path string, params RouteParams) *route {
 	}
 }
 
-// buildSubroutes ... Assembles this route and all its children
 func (rt *route) buildSubroutes(mux *http.ServeMux, prefix string) {
 	newPath := prefix + rt.path
 	mux.Handle(rt.method+" "+newPath, rt.buildChain())
@@ -82,52 +79,81 @@ func (rt *route) buildSubroutes(mux *http.ServeMux, prefix string) {
 	}
 }
 
-// Path ...
-// Set the path for this route.
+// Path sets the path for this route.
 // When Router is being assembled, this route's path is prepended with all it's parents' paths
 func (rt *route) Path(path string) *route {
 	rt.path = path
 	return rt
 }
 
-// Handler ... Set the handler for this route
+// Handler sets the handler for this route
 func (rt *route) Handler(handler http.Handler) *route {
 	rt.handler = handler
 	return rt
 }
 
-// HandlerFunc ... Set the handler function for this route
+// HandlerFunc sets the handler function for this route
 func (rt *route) HandlerFunc(handler http.HandlerFunc) *route {
 	rt.handler = Wrap(handler)
 	return rt
 }
 
-// Method ... Add a method to the allowed method's list. Don't use to allow all methods.
+// Method adds a method to the allowed method's list. Don't use or set to "" to allow all methods.
 func (rt *route) Method(method string) *route {
 	rt.method = method
 	return rt
 }
 
-// Subroute ... Add a child route
-func (rt *route) Subroute(subroute *route) *route {
-	rt.subroutes = append(rt.subroutes, subroute)
-	return rt
-}
-
-// Middleware ... Append this routes' middleware chain with provided struct
+// Middleware appends this routes' middleware chain with provided struct
 func (rt *route) Middleware(mw Middleware) *route {
 	rt.middlewareChain = append(rt.middlewareChain, mw)
 	return rt
 }
 
-// MiddlewareFunc ... Append this routes' middleware chain with provided function
+// MiddlewareFunc appends this routes' middleware chain with provided function
 func (rt *route) MiddlewareFunc(mw MiddlewareFunc) *route {
 	rt.middlewareChain = append(rt.middlewareChain, middlewareFuncWrapper{mw})
 	return rt
 }
 
-// StopMiddleware ... Stops middleware propagation to this route from it's parent
+// StopMiddleware stops middleware propagation to this route from it's parent
 func (rt *route) StopMiddleware() *route {
 	rt.stopProp = true
+	return rt
+}
+
+// Route adds a new subroute to this route's children.
+func (rt *route) Route(path string, params ...any) *route {
+	p := ParseParams(params...)
+	subroute := &route{
+		path:            path,
+		handler:         p.Handler,
+		method:          p.Method,
+		subroutes:       nil,
+		middlewareChain: p.Middlewares,
+		stopProp:        p.StopProp,
+	}
+	rt.subroutes = append(rt.subroutes, subroute)
+	return rt
+}
+
+// RouteWithParams adds a new subroute to this route's children.
+func (rt *route) RouteWithParams(path string, params ...any) *route {
+	p := ParseParams(params...)
+	subroute := &route{
+		path:            path,
+		handler:         p.Handler,
+		method:          p.Method,
+		subroutes:       nil,
+		middlewareChain: p.Middlewares,
+		stopProp:        p.StopProp,
+	}
+	rt.subroutes = append(rt.subroutes, subroute)
+	return rt
+}
+
+// Service adds an existing subroute to this route's children.
+func (rt *route) Service(service *route) *route {
+	rt.subroutes = append(rt.subroutes, service)
 	return rt
 }

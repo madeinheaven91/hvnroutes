@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	tHandler     http.Handler     = router.Wrap(handlerFunc)
-	fstMw router.Middleware = router.WrapMW(middlewareFunc)
-	sndMw router.Middleware = router.WrapMW(middlewareFunc2)
+	tHandler http.Handler      = router.Wrap(handlerFunc)
+	fstMw    router.Middleware = router.WrapMW(middlewareFunc)
+	sndMw    router.Middleware = router.WrapMW(middlewareFunc2)
 )
 
 func TestParseParams(t *testing.T) {
@@ -118,4 +118,3 @@ func TestParseParams(t *testing.T) {
 		})
 	}
 }
-

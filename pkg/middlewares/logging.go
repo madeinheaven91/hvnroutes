@@ -14,7 +14,7 @@ type loggingResponseWriter struct {
 	statusCode int
 }
 
-func NewLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
+func newLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
 	return &loggingResponseWriter{w, http.StatusOK}
 }
 
@@ -23,9 +23,9 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 	lrw.ResponseWriter.WriteHeader(code)
 }
 
-func LoggingMW(next http.HandlerFunc) http.HandlerFunc {
+func loggingMW(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		lrw := NewLoggingResponseWriter(w)
+		lrw := newLoggingResponseWriter(w)
 
 		start := time.Now()
 		next(lrw, r)
@@ -39,4 +39,10 @@ func LoggingMW(next http.HandlerFunc) http.HandlerFunc {
 			r.ContentLength,
 			end.Sub(start).Milliseconds())
 	}
+}
+
+type Logging struct{}
+
+func (l Logging) Handle(next http.HandlerFunc) http.HandlerFunc {
+	return loggingMW(next)
 }

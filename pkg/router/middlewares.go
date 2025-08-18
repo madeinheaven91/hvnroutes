@@ -20,10 +20,6 @@ func (f middlewareFuncWrapper) Handle(next http.HandlerFunc) http.HandlerFunc {
 	return f.fn(next)
 }
 
-func WrapMW(mw MiddlewareFunc) Middleware {
-	return middlewareFuncWrapper{mw}
-}
-
 func (rt *route) buildChain() http.HandlerFunc {
 	chain := func(handler http.HandlerFunc) http.HandlerFunc {
 		for _, mw := range slices.Backward(rt.middlewareChain) {

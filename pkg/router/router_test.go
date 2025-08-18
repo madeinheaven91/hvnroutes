@@ -18,19 +18,17 @@ type test struct {
 
 func TestOmni(t *testing.T) {
 	router := r.NewRouter(http.NewServeMux())
-	router.Route = r.Route("/root", nil, "GET").
-		Subroute(
-			r.Route("/unspecified"),
-		).
-		Subroute(
-			r.Route("/test1").
+	router.Route = r.NewRoute("/root", nil, "GET").
+		Route("/unspecified").
+		Service(
+			r.NewRoute("/test1").
 				HandlerFunc(handlerFunc).
-				Subroute(
-					r.Route("/{wildcard}").
+				Service(
+					r.NewRoute("/{wildcard}").
 						Handler(wildcardHandler{}),
 				).
-				Subroute(
-					r.Route("/mw").
+				Service(
+					r.NewRoute("/mw").
 						HandlerFunc(handlerFunc).
 						MiddlewareFunc(middlewareFunc).
 						MiddlewareFunc(middlewareFunc2),
